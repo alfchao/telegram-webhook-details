@@ -8,9 +8,9 @@ import pathlib
 
 
 class Settings(BaseSettings):
-    BOT_TOKEN: str = ''
+    BOT_TOKEN: str 
     CUSTOM_DOMAIN: str = ''
-    VERCEL_URL: str = ''
+    VERCEL_URL: str 
     BOT_DOMAIN: str = "api.telegram.org"
     TG_BOT_API: str = f"https://{BOT_DOMAIN}/bot"
     secret_token: str = 'alfchao'
