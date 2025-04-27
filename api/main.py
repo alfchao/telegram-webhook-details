@@ -49,6 +49,9 @@ def create_app():
 
     @app.post("/")
     async def telegram_webhook(request: Request):
+
+        if dict(request.headers).get("x-telegram-bot-api-secret-token") and dict(request.headers).get("x-telegram-bot-api-secret-token") != settings.secret_token:
+            return {"status": "forbidden"}
         # 打印请求头
         print("Headers:", json_print(dict(request.headers)))
 
