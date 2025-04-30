@@ -308,4 +308,5 @@ pyrightconfig.json
 .vercel
 .vscode
 .idea
+.trae
 # End of https://www.toptal.com/developers/gitignore/api/python,pycharm,visualstudiocode

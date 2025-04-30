@@ -15,18 +15,24 @@ logger.add(
     level="DEBUG",
 )
 
+
 class Settings(BaseSettings):
-    BOT_TOKEN: str 
+    BOT_TOKEN: str
     CUSTOM_DOMAIN: str = ''
-    VERCEL_URL: str 
+    VERCEL_URL: str
     BOT_DOMAIN: str = "api.telegram.org"
     TG_BOT_API: str = f"https://{BOT_DOMAIN}/bot"
     secret_token: str = 'alfchao'
     # .env
 
 
-def json_print(obj):
-    return json.dumps(obj, indent=4, ensure_ascii=False)
+def json_print(obj, indent=None):
+    if indent is None:
+        if len(str(obj)) > 200:
+            indent = None
+        else:
+            indent = 4
+    return json.dumps(obj, indent=indent, ensure_ascii=False)
 
 
 settings = Settings(_env_file=pathlib.Path(__file__).parent.parent / '.env')
@@ -40,7 +46,8 @@ def set_webhook():
         "url": f"https://{settings.CUSTOM_DOMAIN or settings.VERCEL_URL}/",
         "secret_token": settings.secret_token
     }
-    rsp = requests.post(telegram_webhook.format(os.environ.get("TELEGRAM_BOT_TOKEN")), json=body)
+    rsp = requests.post(telegram_webhook.format(
+        os.environ.get("TELEGRAM_BOT_TOKEN")), json=body)
     logger.info(json_print(rsp.json()))
     get_webhook()
 
@@ -65,11 +72,11 @@ def create_app():
         if dict(request.headers).get("x-telegram-bot-api-secret-token") and dict(request.headers).get("x-telegram-bot-api-secret-token") != settings.secret_token:
             return {"status": "forbidden"}
         # 打印请求头
-        logger.info("Headers:", json_print(dict(request.headers)))
+        logger.info(f"Headers: {json_print(dict(request.headers))}")
 
         # 打印请求体（原始字节）
         request_body = await request.json()
-        logger.info("Raw body:", json_print(request_body))
+        logger.info(f"Raw body: {json_print(request_body)}")
 
         body = {
             "headers": dict(request.headers),
@@ -80,7 +87,7 @@ def create_app():
 
         send_body = {
             "chat_id": f"{request_body.get('message').get('chat').get('id')}",
-            "text": f"```json\n{json_print(body)}\n```",
+            "text": f"```json\n{json_print(body, indent=4)}\n```",
             "parse_mode": "MarkdownV2",
             "reply_parameters": {
                 "message_id": request_body.get('message').get('message_id'),
