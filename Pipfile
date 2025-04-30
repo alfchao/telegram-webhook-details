@@ -7,9 +7,10 @@ name = "pip_conf_index_global"
 fastapi = "*"
 requests = "*"
 pydantic-settings = "*"
+loguru = "0.7.3"
 
 [dev-packages]
 
+
 [requires]
-python_version = "3.13"
-python_full_version = "3.13.2"
+python_version = "3.12"

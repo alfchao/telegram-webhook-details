@@ -2,10 +2,18 @@ import json
 
 from fastapi import FastAPI, Request
 import os
+import sys
 import requests
 from pydantic_settings import BaseSettings
 import pathlib
 
+from loguru import logger
+
+logger.remove()
+logger.add(
+    sys.stdout,
+    level="DEBUG",
+)
 
 class Settings(BaseSettings):
     BOT_TOKEN: str 
@@ -23,7 +31,7 @@ def json_print(obj):
 
 settings = Settings(_env_file=pathlib.Path(__file__).parent.parent / '.env')
 
-print(settings.BOT_TOKEN)
+logger.info(settings.BOT_TOKEN)
 
 
 def set_webhook():
@@ -33,19 +41,23 @@ def set_webhook():
         "secret_token": settings.secret_token
     }
     rsp = requests.post(telegram_webhook.format(os.environ.get("TELEGRAM_BOT_TOKEN")), json=body)
-    print(json_print(rsp.json()))
+    logger.info(json_print(rsp.json()))
     get_webhook()
 
 
 def get_webhook():
     telegram_webhook = f"{settings.TG_BOT_API}{settings.BOT_TOKEN}/getWebhookInfo"
     rsp = requests.get(telegram_webhook)
-    print(json_print(rsp.json()))
+    logger.info(json_print(rsp.json()))
 
 
 def create_app():
     set_webhook()
     app = FastAPI()
+
+    @app.get("/")
+    async def root():
+        return {"message": "Hello World"}
 
     @app.post("/")
     async def telegram_webhook(request: Request):
@@ -53,11 +65,11 @@ def create_app():
         if dict(request.headers).get("x-telegram-bot-api-secret-token") and dict(request.headers).get("x-telegram-bot-api-secret-token") != settings.secret_token:
             return {"status": "forbidden"}
         # 打印请求头
-        print("Headers:", json_print(dict(request.headers)))
+        logger.info("Headers:", json_print(dict(request.headers)))
 
         # 打印请求体（原始字节）
         request_body = await request.json()
-        print("Raw body:", json_print(request_body))
+        logger.info("Raw body:", json_print(request_body))
 
         body = {
             "headers": dict(request.headers),
@@ -76,7 +88,7 @@ def create_app():
         }
 
         rsp = requests.post(telegram_sendmsg, json=send_body)
-        print(json_print(rsp.json()))
+        logger.info(json_print(rsp.json()))
 
         # 如果收到一个文件，则再发送一个文件链接回去
         if request_body.get('message').get('document'):
@@ -86,7 +98,7 @@ def create_app():
                 "file_id": request_body.get('message').get('document').get('file_id')
             }
             rsp = requests.post(telegram_getfile, json=send_body)
-            print(json_print(rsp.json()))
+            logger.info(json_print(rsp.json()))
             file_path = rsp.json().get('result').get('file_path')
 
             send_body = {
@@ -101,7 +113,7 @@ def create_app():
             # 保存这个文件
             # with open(f"{request_body.get('message').get('document').get('file_name')}", "wb") as f:
             #     f.write(requests.get(f"{settings.TG_BOT_API}file/bot{settings.BOT_TOKEN}/{file_path}").content)
-            print(json_print(rsp.json()))
+            logger.info(json_print(rsp.json()))
 
         return {"status": "ok"}
 
