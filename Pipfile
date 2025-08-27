@@ -7,6 +7,7 @@ name = "pip_conf_index_global"
 fastapi = "*"
 requests = "*"
 pydantic-settings = "*"
+vercel_blob = "*"
 loguru = "*"
 
 [dev-packages]
