@@ -1,0 +1,16 @@
+[project]
+name = "telegram-webhook-detail"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi",
+  "requests",
+  "pydantic-settings",
+  "vercel_blob",
+  "loguru",
+  "starlette",
+]
+# pyproject.toml 中新增以下内容
+[tool.uv.sources]
+# 命名自定义（如 tsinghua），priority=primary 表示优先使用
+tsinghua = { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple" }
